@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  
+}
+
+//Enum untuk Role
+enum Role {
+  MAHASISWA
+  ADMIN
+  DOSEN
+}
+
+// Enum untuk Status Pengajuan
+enum StatusPengajuan {
+  MENUNGGU_TTD_DOSEN
+  VERIFIKASI_KPS
+  DISETUJUI
+  DITOLAK
+}
+
+// 1. Tabel User
+model User {
+  id       String   @id @default(uuid())
+  nama     String
+  email    String   @unique
+  password String
+  role     Role
+
+  // Relasi 1:1
+  mahasiswa Mahasiswa?
+  admin     Admin?
+}
+
+// 2. Tabel Mahasiswa (Relasi 1:1 ke User)
+model Mahasiswa {
+  id      String @id @default(uuid())
+  userId  String @unique @map("user_id")
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  nim     String @unique
+  kelas   String
+  prodi   String
+
+  // Relasi 1:N ke PengajuanKompen
+  pengajuanKompen PengajuanKompen[]
+
+  @@map("mahasiswa")
+}
+
+// 3. Tabel Admin (Relasi 1:1 ke User)
+model Admin {
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admin")
+}
+
+// 4. Tabel Dosen
+model Dosen {
+  id   String @id @default(uuid())
+  nama String
+  nip  String @unique
+
+  // Relasi 1:N ke Matkul
+  matkul Matkul[]
+
+  @@map("dosen")
+}
+
+// 5. Tabel Matkul (Relasi 1:N ke Dosen)
+model Matkul {
+  id         String @id @default(uuid())
+  dosenId    String @map("dosen_id")
+  dosen      Dosen  @relation(fields: [dosenId], references: [id], onDelete: Cascade)
+  
+  namaMatkul String @map("nama_matkul")
+  prodi      String
+
+  // Relasi 1:N ke PengajuanKompen
+  pengajuanKompen PengajuanKompen[]
+
+  @@map("matkul")
+}
+
+// 6. Tabel Pengajuan_kompen
+model PengajuanKompen {
+  id          String          @id @default(uuid())
+  mahasiswaId String          @map("mahasiswa_id")
+  mahasiswa   Mahasiswa       @relation(fields: [mahasiswaId], references: [id], onDelete: Cascade)
+  
+  matkulId    String          @map("matkul_id")
+  matkul      Matkul          @relation(fields: [matkulId], references: [id], onDelete: Cascade)
+
+  semester    Int
+  kelas       String
+  pekerjaan   String
+  jumlahJam   Int             @map("jumlah_jam")
+  status      StatusPengajuan @default(MENUNGGU_TTD_DOSEN)
+  filePdf     String?         @map("file_pdf")
+  fileScan    String?         @map("file_scan")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  @@map("pengajuan_kompen")
+}
