@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginForm() {
   const [identifier, setIdentifier] = useState('');
@@ -81,6 +82,17 @@ export default function LoginForm() {
           >
             {loading ? 'Memproses...' : 'Masuk'}
           </button>
+
+          {/* Navigasi ke Halaman Register */}
+          <p className="text-center text-sm text-slate-500 mt-6">
+            Belum punya akun?{' '}
+            <Link
+              href="/register"
+              className="text-[#0F388A] font-bold hover:underline transition-all"
+            >
+              Daftar di sini
+            </Link>
+          </p>
         </form>
 
         {/* Footer Info */}
