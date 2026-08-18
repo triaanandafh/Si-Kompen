@@ -2,11 +2,25 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation'; // 1. Import useRouter
 
 export default function Sidebar() {
   const pathname = usePathname();
-const menuItems = [
+  const router = useRouter(); // 2. Inisialisasi router
+
+  // Fungsi Logout
+  const handleLogout = () => {
+    // Hapus data user dari LocalStorage
+    localStorage.removeItem('user');
+    
+    // Opsi: Hapus item lain jika ada (misal token auth)
+    // localStorage.clear();
+
+    // Redirect ke halaman login
+    router.push('/LoginForm'); // Sesuaikan dengan route login kamu (misal: '/' atau '/login')
+  };
+
+  const menuItems = [
     {
       name: 'Dashboard',
       href: '/dashboard',
@@ -17,7 +31,7 @@ const menuItems = [
       ),
     },
     {
-        name: 'Ajukan Kompen',
+      name: 'Ajukan Kompen',
       href: '/dashboard/ajukan',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -26,7 +40,7 @@ const menuItems = [
       ),
     },
     {
-        name: 'Riwayat Pengajuan',
+      name: 'Riwayat Pengajuan',
       href: '/dashboard/riwayat',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -35,15 +49,15 @@ const menuItems = [
       ),
     },
     {
-        name: 'Profil',
+      name: 'Profil',
       href: '/dashboard/profil',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
       ),
-    }
-]
+    },
+  ];
 
   return (
     <aside className="w-64 bg-white border-r border-slate-200 min-h-screen flex flex-col justify-between p-4">
@@ -86,7 +100,7 @@ const menuItems = [
       {/* User Info / Logout Button */}
       <div className="pt-4 border-t border-slate-100">
         <button
-          onClick={() => console.log('Logout')}
+          onClick={handleLogout} // 3. Pasang fungsi handleLogout
           className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

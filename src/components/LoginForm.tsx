@@ -9,16 +9,21 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setLoading(true);
+
+  // Pengecekan sederhana berdasarkan input email/NIM
+  if (identifier === 'admin@polinema.ac.id' || identifier.toLowerCase().includes('admin')) {
+    // Redirect ke Admin Dashboard
+    router.push('/admin/dashboard');
+  } else {
+    // Redirect ke Dashboard Mahasiswa
     router.push('/dashboard');
-    setLoading(true);
-    
-    // TODO: Panggil API login di sini
-    console.log({ identifier, password });
-    
-    setLoading(false);
-  };
+  }
+
+  setLoading(false);
+};
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex items-center justify-center p-4">
