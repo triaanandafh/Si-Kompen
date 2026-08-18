@@ -52,7 +52,7 @@ export default function RiwayatPengajuanPage() {
       setUser(JSON.parse(savedUser));
     } else {
       setUser({
-        name: 'Aurora Rahmadani',
+        name: 'Tria Ananda',
         role: 'Mahasiswa',
       });
     }
