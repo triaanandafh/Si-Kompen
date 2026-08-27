@@ -2,66 +2,62 @@
 
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
+import { getRiwayatPengajuan } from './actions';
 
-interface PengajuanHistory {
+interface HistoryItem {
   id: string;
-  kode: string;
-  mataKuliah: string;
-  tanggal: string;
-  jam: string;
-  status: 'Menunggu TTD Dosen' | 'Selesai' | 'Ditolak';
+  createdAt: string;
+  jumlahJam: number;
+  status: string;
+  matkul?: {
+    namaMatkul: string;
+  } | null;
 }
 
 export default function RiwayatPengajuanPage() {
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{ name: string; role: string }>({
     name: '',
-    role: '',
+    role: 'Mahasiswa',
   });
 
   // Mock Data Riwayat Pengajuan
-  const [historyList] = useState<PengajuanHistory[]>([
-    {
-      id: '1',
-      kode: 'KMP-0451',
-      mataKuliah: 'Pemrograman Web Lanjut',
-      tanggal: '18 Maret 2024',
-      jam: '4 jam',
-      status: 'Menunggu TTD Dosen',
-    },
-    {
-      id: '2',
-      kode: 'KMP-0448',
-      mataKuliah: 'Jaringan Komputer',
-      tanggal: '09 Maret 2024',
-      jam: '3 jam',
-      status: 'Selesai',
-    },
-    {
-      id: '3',
-      kode: 'KMP-0446',
-      mataKuliah: 'Basis Data Terdistribusi',
-      tanggal: '28 Februari 2024',
-      jam: '4 jam',
-      status: 'Selesai',
-    },
-  ]);
+  const [historyList, setHistoryList] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    } else {
-      setUser({
-        name: 'Tria Ananda',
-        role: 'Mahasiswa',
-      });
+    async function fetchRiwayat() {
+      setLoading(true);
+      const savedUserStr = localStorage.getItem('user');
+
+      if (savedUserStr) {
+        try {
+          const parsedUser = JSON.parse(savedUserStr);
+          setUser({
+            name: parsedUser.nama || parsedUser.name || 'Mahasiswa',
+            role: parsedUser.role || 'Mahasiswa',
+          });
+
+          // 3. Panggil Server Action dengan ID User dari localStorage
+          if (parsedUser.id) {
+            const res = await getRiwayatPengajuan(parsedUser.id);
+            if (res.success && res.data) {
+              setHistoryList(res.data as unknown as HistoryItem[]);
+            }
+          }
+        } catch (err) {
+          console.error('Error loading riwayat:', err);
+        }
+      }
+      setLoading(false);
     }
+
+    fetchRiwayat();
   }, []);
 
-  const initial = user.name ? user.name.charAt(0).toUpperCase() : 'A';
+ const initial = user.name ? user.name.charAt(0).toUpperCase() : 'M';
 
-  // Helper Badge Color berdasarkan Status
-  const getStatusBadge = (status: PengajuanHistory['status']) => {
+  // Helper Badge Color berdasarkan Enum Status DB
+  const renderStatusBadge = (status: string) => {
     switch (status) {
       case 'Menunggu TTD Dosen':
         return (
@@ -131,24 +127,50 @@ export default function RiwayatPengajuanPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {historyList.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-slate-50/50 transition-colors"
-                  >
-                    <td className="py-5 px-6 text-slate-400 font-medium">
-                      {item.kode}
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-slate-400">
+                      Memuat riwayat pengajuan...
                     </td>
-                    <td className="py-5 px-6 font-semibold text-slate-800">
-                      {item.mataKuliah}
-                    </td>
-                    <td className="py-5 px-6 text-slate-500">
-                      {item.tanggal}
-                    </td>
-                    <td className="py-5 px-6 text-slate-500">{item.jam}</td>
-                    <td className="py-5 px-6">{getStatusBadge(item.status)}</td>
                   </tr>
-                ))}
+                ) : historyList.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-slate-400">
+                      Belum ada riwayat pengajuan kompen.
+                    </td>
+                  </tr>
+                ) : (
+                  historyList.map((item) => {
+                    const dateFormatted = new Date(item.createdAt).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    });
+
+                    return (
+                      <tr
+                        key={item.id}
+                        className="hover:bg-slate-50/50 transition-colors"
+                      >
+                        <td className="py-5 px-6 text-slate-400 font-mono text-xs">
+                          KMP-{item.id.slice(0, 4).toUpperCase()}
+                        </td>
+                        <td className="py-5 px-6 font-semibold text-slate-800">
+                          {item.matkul?.namaMatkul || '-'}
+                        </td>
+                        <td className="py-5 px-6 text-slate-500">
+                          {dateFormatted}
+                        </td>
+                        <td className="py-5 px-6 text-slate-500">
+                          {item.jumlahJam} jam
+                        </td>
+                        <td className="py-5 px-6">
+                          {renderStatusBadge(item.status)}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
