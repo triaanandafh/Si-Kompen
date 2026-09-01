@@ -2,31 +2,105 @@
 
 import React, { useEffect, useState } from 'react';
 import Sidebar from '@/components/Sidebar';
+import { getRiwayatPengajuan } from './riwayat/actions';
+
+interface UserProfile {
+  name: string;
+  nim: string;
+  role: string;
+  kelas: string;
+  semester: string | number;
+  prodi: string;
+}
+
+interface HistoryItem {
+  id: string;
+  createdAt: string;
+  jumlahJam: number;
+  status: string;
+  matkul?: {
+    namaMatkul: string;
+  } | null;
+}
 
 export default function DashboardPage() {
-    const [user, setUser] = useState<{ name: string; nim: string; role: string }>({
+    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<UserProfile>({
     name: '',
     nim: '',
-    role: '',
+    role: 'Mahasiswa',
+    kelas: '',
+    semester: '',
+    prodi: '',
   });
 
+  const [recentHistory, setRecentHistory] = useState<HistoryItem[]>([]);  
+
   useEffect(() => {
-    // Simulasi mengambil data user dari LocalStorage atau Session
-    // Nanti bagian ini dihubungkan ke API / Supabase Auth kamu
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    } else {
-      // Data default/fallback jika belum ada data login
-      setUser({
-        name: 'Tria Ananda',
-        nim: '2141720000',
-        role: 'Mahasiswa',
-      });
+    async function fetchDashboardData() {
+      setLoading(true);
+      const savedUserStr = localStorage.getItem('user');
+    if (savedUserStr) {
+      try {
+        const parsed = JSON.parse(savedUserStr);
+        setUser({
+          name: parsed.nama || parsed.name || '',
+          nim: parsed.nim || '',
+          role: parsed.role || 'Mahasiswa',
+          kelas: parsed.kelas || '',
+          semester: parsed.semester || '',
+          prodi: parsed.prodi || '',
+        });
+        // Fetch riwayat pengajuan dari server jika ada ID user
+          if (parsed.id) {
+            const res = await getRiwayatPengajuan(parsed.id);
+            if (res.success && res.data) {
+              // Ambil 3 data pengajuan terbaru saja untuk ringkasan di Dashboard
+              setRecentHistory((res.data as unknown as HistoryItem[]).slice(0, 3));
+            }}
+      } catch (err) {
+        console.error('Error parsing user data:', err);
+      }
     }
+    setLoading(false);
+  }
+  fetchDashboardData();
   }, []);
   const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
   
+  // Helper Badge Color
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
+      case 'MENUNGGU_TTD_DOSEN':
+      case 'Menunggu TTD Dosen':
+        return (
+          <span className="text-amber-700 text-xs font-medium bg-amber-50 px-2.5 py-1 rounded-md">
+            Menunggu TTD Dosen
+          </span>
+        );
+      case 'SELESAI':
+      case 'Selesai':
+        return (
+          <span className="text-emerald-700 text-xs font-medium bg-emerald-50 px-2.5 py-1 rounded-md">
+            Selesai
+          </span>
+        );
+      case 'DITOLAK':
+      case 'Ditolak':
+        return (
+          <span className="text-rose-700 text-xs font-medium bg-rose-50 px-2.5 py-1 rounded-md">
+            Ditolak
+          </span>
+        );
+      default:
+        return (
+          <span className="text-slate-700 text-xs font-medium bg-slate-100 px-2.5 py-1 rounded-md">
+            {status}
+          </span>
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex font-sans">
       {/* Sidebar */}
@@ -76,15 +150,15 @@ export default function DashboardPage() {
             <div className="space-y-4 pt-4 text-sm">
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">Kelas</span>
-                <span className="font-semibold text-slate-800">TI-3B</span>
+                <span className="font-semibold text-slate-800">{user.kelas}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">Semester</span>
-                <span className="font-semibold text-slate-800">6</span>
+                <span className="font-semibold text-slate-800">{user.semester}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">Program Studi</span>
-                <span className="font-semibold text-slate-800">D-IV Teknik Informatika</span>
+                <span className="font-semibold text-slate-800">{user.prodi}</span>
               </div>
             </div>
           </div>
@@ -101,10 +175,7 @@ export default function DashboardPage() {
                     <h4 className="font-bold text-slate-800 text-base">Pemrograman Web Lanjut</h4>
                     <p className="text-xs text-slate-400 mt-0.5">KMP-0451 · 18 Maret 2024 · 4 jam</p>
                   </div>
-                  <span className="bg-amber-100/80 text-amber-800 text-xs font-medium px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                    Menunggu TTD Dosen
-                  </span>
+                  {renderStatusBadge('MENUNGGU_TTD_DOSEN')}
                 </div>
 
                 {/* Progress Bar / Stepper */}
@@ -147,16 +218,38 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 text-slate-600">
+              {loading ? (
                 <tr>
-                  <td className="py-4 font-medium text-slate-800">Pemrograman Web Lanjut</td>
-                  <td className="py-4 text-slate-500">18 Maret 2024</td>
-                  <td className="py-4">
-                    <span className="text-amber-700 text-xs font-medium bg-amber-50 px-2.5 py-1 rounded-md">
-                      Menunggu TTD Dosen
-                    </span>
+                  <td colSpan={3} className="py-4 text-center text-slate-400">
+                    Memuat ringkasan riwayat...
                   </td>
                 </tr>
-              </tbody>
+              ) : recentHistory.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="py-4 text-center text-slate-400">
+                    Belum ada riwayat pengajuan kompen.
+                  </td>
+                </tr>
+              ) : (
+                recentHistory.map((item) => {
+                  const dateFormatted = new Date(item.createdAt).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  });
+
+                  return (
+                    <tr key={item.id}>
+                      <td className="py-4 font-medium text-slate-800">
+                        {item.matkul?.namaMatkul || '-'}
+                      </td>
+                      <td className="py-4 text-slate-500">{dateFormatted}</td>
+                      <td className="py-4">{renderStatusBadge(item.status)}</td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
             </table>
           </div>
         </div>

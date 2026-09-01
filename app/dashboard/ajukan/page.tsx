@@ -3,12 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import CustomSelect from '@/components/CustomSelect';
+import Modal from '@/components/Modal'; 
 
 export default function AjukanKompenPage() {
   const [user, setUser] = useState<{ name: string; role: string }>({
     name: '',
     role: '',
   });
+
+  //State untuk kontrol Modal Notifikasi
+  const [showModal, setShowModal] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -17,6 +21,7 @@ export default function AjukanKompenPage() {
     kelas: 'TI-3B',
     jenisPekerjaan: '',
     jumlahJam: '4',
+    pekerjaanLain: '',
     keterangan: '',
   });
 
@@ -42,6 +47,7 @@ export default function AjukanKompenPage() {
     { label: 'Pembersihan Lab', value: 'pembersihan-lab' },
     { label: 'Update Dokumentasi Aplikasi', value: 'update-dokumentasi' },
     { label: 'Bantuan Administrasi Prodi', value: 'bantuan-admin' },
+    { label: 'Lain-lain', value: 'lain-lain' },
   ];
 
   const isFormValid =
@@ -75,9 +81,29 @@ export default function AjukanKompenPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const finalPekerjaan =
+    formData.jenisPekerjaan === 'lain-lain'
+    ? formData.pekerjaanLain
+    : formData.jenisPekerjaan;
+
+    const payload = {
+    ...formData,
+    jenisPekerjaan: finalPekerjaan, 
+  };
+
     console.log('Data Pengajuan:', formData);
     // Di sini nantinya tinggal dipanggil API Prisma / Supabase
-    alert('Pengajuan berhasil dikirim!');
+    setShowModal(true);
+    setFormData({
+      mataKuliah: '',
+      semester: 'semester-6',
+      kelas: 'TI-3B',
+      jenisPekerjaan: '',
+      jumlahJam: '4',
+      pekerjaanLain: '',
+      keterangan: '',
+    });
   };
 
   return (
@@ -172,6 +198,25 @@ export default function AjukanKompenPage() {
               />
             </div>
 
+            {/* Input Manual untuk Opsi Lain-lain */}
+              {formData.jenisPekerjaan === 'Lain-lain' && (
+                <div className="mt-3">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Detail Kegiatan Kompensasi (Input Manual)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Masukkan detail kegiatan kompensasi..."
+                    value={formData.pekerjaanLain || ''}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, pekerjaanLain: e.target.value }))
+                    }
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F388A]/20 transition-all"
+                    required
+                  />
+                </div>
+              )}
+
             {/* Jumlah Jam */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -216,6 +261,15 @@ export default function AjukanKompenPage() {
           </form>
         </div>
       </main>
+
+      {/* 4. Render Komponen Modal Custom */}
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title="Pengajuan Berhasil!"
+        message="Formulir pengajuan kompensasi presensi Anda telah berhasil dikirim."
+        type="success"
+      />
     </div>
   );
 }
