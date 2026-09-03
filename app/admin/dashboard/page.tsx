@@ -10,6 +10,9 @@ interface SubmissionItem {
   status: string;
   createdAt: string;
   mahasiswa?: {
+    user?: {
+      nama: string;
+    } | null;
     nama: string;
     nim: string;
   } | null;
@@ -37,7 +40,7 @@ export default function AdminDashboardPage() {
     async function loadData() {
       setLoading(true);
       const res = await getDashboardData(selectedProdi);
-      if (res.success && res.stats && res.submissions) {
+      if (res && res.success && 'stats' in res && res.stats && 'submissions' in res && res.submissions) {
         setStatsData(res.stats);
         setSubmissions(res.submissions as unknown as SubmissionItem[]);
       }
@@ -58,34 +61,38 @@ export default function AdminDashboardPage() {
   const formatStatusInfo = (statusEnum: string) => {
     switch (statusEnum) {
       case 'MENUNGGU_TTD_DOSEN':
+      case 'Menunggu TTD Dosen':
         return {
           label: 'Menunggu TTD Dosen',
-          badgeStyle: 'bg-amber-100 text-amber-700 border-amber-200',
-          dotColor: 'bg-amber-500',
+          badgeStyle: 'bg-amber-100 text-amber-800 border-amber-200',
+          dot: 'bg-amber-500',
         };
-      case 'DIPROSES_KPS':
+      case 'VERIFIKASI_KPS':
+      case 'Diproses KPS':
         return {
-          label: 'Diproses KPS',
-          badgeStyle: 'bg-blue-100 text-blue-700 border-blue-200',
-          dotColor: 'bg-blue-500',
+          label: 'Verifikasi KPS',
+          badgeStyle: 'bg-sky-100 text-sky-800 border-sky-200',
+          dot: 'bg-sky-500',
         };
-      case 'SELESAI':
+      case 'DISETUJUI':
+      case 'Selesai':
         return {
-          label: 'Selesai',
-          badgeStyle: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-          dotColor: 'bg-emerald-500',
+          label: 'Disetujui',
+          badgeStyle: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+          dot: 'bg-emerald-500',
         };
       case 'DITOLAK':
+      case 'Ditolak':
         return {
           label: 'Ditolak',
-          badgeStyle: 'bg-rose-100 text-rose-700 border-rose-200',
-          dotColor: 'bg-rose-500',
+          badgeStyle: 'bg-rose-100 text-rose-800 border-rose-200',
+          dot: 'bg-rose-500',
         };
       default:
         return {
-          label: statusEnum,
-          badgeStyle: 'bg-slate-100 text-slate-700 border-slate-200',
-          dotColor: 'bg-slate-500',
+          label: status,
+          badgeStyle: 'bg-slate-100 text-slate-800 border-slate-200',
+          dot: 'bg-slate-500',
         };
     }
   };
@@ -171,7 +178,7 @@ export default function AdminDashboardPage() {
                   return (
                     <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="py-4 px-6 font-semibold text-slate-800">
-                        {item.mahasiswa?.nama || 'Mahasiswa'}
+                        {item.mahasiswa?.user?.nama || (item.mahasiswa as any)?.nama || 'Mahasiswa'}
                       </td>
                       <td className="py-4 px-6 text-slate-500 font-medium">
                         {item.mahasiswa?.nim || '-'}
@@ -183,7 +190,7 @@ export default function AdminDashboardPage() {
                         <span
                           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.badgeStyle}`}
                         >
-                          <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotColor}`}></span>
+                          <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot}`}></span>
                           {statusInfo.label}
                         </span>
                       </td>

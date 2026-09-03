@@ -31,10 +31,10 @@ export default function PengajuanMasukPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
 
   const statusOptions = [
-    'Menunggu TTD Dosen',
-    'Diproses KPS',
-    'Selesai',
-    'Ditolak',
+    { label: 'Menunggu TTD Dosen', value: 'MENUNGGU_TTD_DOSEN' },
+    { label: 'Verifikasi KPS', value: 'VERIFIKASI_KPS' },
+    { label: 'Disetujui', value: 'DISETUJUI' },
+    { label: 'Ditolak', value: 'DITOLAK' },
   ];
 
   const loadData = async () => {
@@ -79,31 +79,41 @@ export default function PengajuanMasukPage() {
   }, []);
 
   // Helper Style Badge
+  // Helper Style Badge & Label
   const getBadgeStyle = (status: string) => {
     switch (status) {
+      case 'MENUNGGU_TTD_DOSEN':
       case 'Menunggu TTD Dosen':
         return {
-          badge: 'bg-amber-100 text-amber-800 border-amber-200',
+          label: 'Menunggu TTD Dosen',
+          badgeStyle: 'bg-amber-100 text-amber-800 border-amber-200',
           dot: 'bg-amber-500',
         };
+      case 'VERIFIKASI_KPS':
       case 'Diproses KPS':
         return {
-          badge: 'bg-sky-100 text-sky-800 border-sky-200',
+          label: 'Verifikasi KPS',
+          badgeStyle: 'bg-sky-100 text-sky-800 border-sky-200',
           dot: 'bg-sky-500',
         };
+      case 'DISETUJUI':
       case 'Selesai':
         return {
-          badge: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+          label: 'Disetujui',
+          badgeStyle: 'bg-emerald-100 text-emerald-800 border-emerald-200',
           dot: 'bg-emerald-500',
         };
+      case 'DITOLAK':
       case 'Ditolak':
         return {
-          badge: 'bg-rose-100 text-rose-800 border-rose-200',
+          label: 'Ditolak',
+          badgeStyle: 'bg-rose-100 text-rose-800 border-rose-200',
           dot: 'bg-rose-500',
         };
       default:
         return {
-          badge: 'bg-slate-100 text-slate-800 border-slate-200',
+          label: status,
+          badgeStyle: 'bg-slate-100 text-slate-800 border-slate-200',
           dot: 'bg-slate-500',
         };
     }
@@ -125,7 +135,6 @@ export default function PengajuanMasukPage() {
     const res = await updateStatusPengajuan(selectedItem.id, selectedStatus);
 
     if (res.success) {
-      // Update local state secara langsung
       setSubmissions((prev) =>
         prev.map((sub) =>
           sub.id === selectedItem.id ? { ...sub, status: selectedStatus } : sub
@@ -133,13 +142,7 @@ export default function PengajuanMasukPage() {
       );
       setIsModalOpen(false);
     } else {
-      // Jika mock data/gagal DB, tetap update local UI
-      setSubmissions((prev) =>
-        prev.map((sub) =>
-          sub.id === selectedItem.id ? { ...sub, status: selectedStatus } : sub
-        )
-      );
-      setIsModalOpen(false);
+      alert((res as any).error || 'Gagal menyimpan perubahan ke database!');
     }
     setSubmitting(false);
   };
@@ -214,7 +217,7 @@ export default function PengajuanMasukPage() {
                       {/* Status Badge */}
                       <td className="py-4 px-6">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${style.badge}`}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${style.badgeStyle}`}
                         >
                           <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`}></span>
                           {item.status}
@@ -286,9 +289,9 @@ export default function PengajuanMasukPage() {
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#0F388A]/20 transition-all font-semibold"
                 >
-                  {statusOptions.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
+                  {statusOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
                     </option>
                   ))}
                 </select>

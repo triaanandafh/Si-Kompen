@@ -4,46 +4,60 @@ import { prisma } from '@/lib/prisma';
 
 export async function getDashboardData(prodiFilter: string = 'Semua Prodi') {
   try {
-    // Filter kondisi berdasarkan Prodi melalui relasi Mata Kuliah (matkul.prodi)
-    const prodiCondition = prodiFilter !== 'Semua Prodi' ? { matkul: { prodi: prodiFilter } } : {};
+    // Filter kondisi berdasarkan Prodi jika bukan 'Semua Prodi'
+    const prodiCondition =
+      prodiFilter !== 'Semua Prodi'
+        ? {
+            matkul: {
+              prodi: {
+                contains: prodiFilter,
+                mode: 'insensitive' as const,
+              },
+            },
+          }
+        : {};
 
-    // 1. Hitung Statistik (Total, Menunggu TTD, Diproses KPS, Selesai)
+    // 1. Hitung Statistik (Gunakan field 'status', bukan 'StatusPengajuan')
     const totalPengajuan = await prisma.pengajuanKompen.count({
       where: prodiCondition,
     });
 
     const menungguTtdCount = await prisma.pengajuanKompen.count({
       where: {
-        StatusPengajuan: 'MENUNGGU_TTD_DOSEN',
+        status: 'MENUNGGU_TTD_DOSEN',
         ...prodiCondition,
       },
     });
 
-    const diprosesKpsCount = await prisma.pengajuanKompen.count({
+    const verifikasiKpsCount = await prisma.pengajuanKompen.count({
       where: {
-        StatusPengajuan: 'DIPROSES_KPS',
+        status: 'VERIFIKASI_KPS',
         ...prodiCondition,
       },
     });
 
-    const selesaiCount = await prisma.pengajuanKompen.count({
+    const disetujuiCount = await prisma.pengajuanKompen.count({
       where: {
-        StatusPengajuan: 'SELESAI',
+        status: 'DISETUJUI',
         ...prodiCondition,
       },
     });
 
-    // 2. Ambil Data Pengajuan Terbaru (Join ke Mahasiswa dan Matkul)
+    // 2. Ambil 10 Data Pengajuan Terbaru (Join ke Mahasiswa -> User dan Matkul)
     const submissions = await prisma.pengajuanKompen.findMany({
       where: prodiCondition,
       include: {
-        mahasiswa: true,
+        mahasiswa: {
+          include: {
+            user: true, // Agar nama mahasiswa terbaca
+          },
+        },
         matkul: true,
       },
       orderBy: {
         createdAt: 'desc',
       },
-      take: 10, // Batasi 10 data terbaru di dashboard
+      take: 10,
     });
 
     return {
@@ -51,13 +65,18 @@ export async function getDashboardData(prodiFilter: string = 'Semua Prodi') {
       stats: {
         total: totalPengajuan,
         menunggu: menungguTtdCount,
-        diproses: diprosesKpsCount,
-        selesai: selesaiCount,
+        diproses: verifikasiKpsCount,
+        selesai: disetujuiCount,
       },
       submissions,
     };
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
-    return { success: false, error: 'Gagal mengambil data dashboard' };
+    return {
+      success: false,
+      error: 'Gagal mengambil data dashboard',
+      stats: { total: 0, menunggu: 0, diproses: 0, selesai: 0 },
+      submissions: [],
+    };
   }
 }
