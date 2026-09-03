@@ -2,11 +2,14 @@
 
 import { prisma } from '@/lib/prisma';
 
-export async function getRiwayatPengajuan(mahasiswaId: string) {
+export async function getRiwayatPengajuan(identifier: string) {
   try {
     const data = await prisma.pengajuanKompen.findMany({
       where: {
-        mahasiswaId: mahasiswaId,
+        OR: [
+          { mahasiswaId: identifier },            // jika identifier adalah Mahasiswa.id
+          { mahasiswa: { userId: identifier } },  // jika identifier adalah User.id (dari session login)
+        ],
       },
       include: {
         matkul: true,

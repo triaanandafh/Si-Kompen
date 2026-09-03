@@ -27,7 +27,7 @@ export default function RiwayatPengajuanPage() {
   useEffect(() => {
     async function fetchRiwayat() {
       setLoading(true);
-      const savedUserStr = localStorage.getItem('user');
+      const savedUserStr = localStorage.getItem('session_user') || localStorage.getItem('user');
 
       if (savedUserStr) {
         try {
@@ -59,6 +59,7 @@ export default function RiwayatPengajuanPage() {
   // Helper Badge Color berdasarkan Enum Status DB
   const renderStatusBadge = (status: string) => {
     switch (status) {
+      case 'MENUNGGU_TTD_DOSEN':
       case 'Menunggu TTD Dosen':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
@@ -66,13 +67,23 @@ export default function RiwayatPengajuanPage() {
             Menunggu TTD Dosen
           </span>
         );
+      case 'VERIFIKASI_KPS':
+      case 'Diproses KPS':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200/60">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+            Verifikasi KPS
+          </span>
+        );
+      case 'DISETUJUI':
       case 'Selesai':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200/60">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            Selesai
+            Disetujui
           </span>
         );
+      case 'DITOLAK':
       case 'Ditolak':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-600 border border-rose-200/60">
@@ -81,7 +92,11 @@ export default function RiwayatPengajuanPage() {
           </span>
         );
       default:
-        return null;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+            {status}
+          </span>
+        );
     }
   };
 
@@ -166,6 +181,21 @@ export default function RiwayatPengajuanPage() {
                         </td>
                         <td className="py-5 px-6">
                           {renderStatusBadge(item.status)}
+                        </td>
+                        {/* Di kolom tabel atau aksi Riwayat */}
+                        <td className="py-5 px-6">
+                          {item.status === 'DISETUJUI' ? (
+                            <a
+                              href={`/dashboard/riwayat/${item.id}/cetak`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1.5 text-xs font-semibold text-[#0F388A] bg-blue-50 hover:bg-blue-100 rounded-lg transition-all inline-flex items-center gap-1"
+                            >
+                              🖨️ Cetak
+                            </a>
+                          ) : (
+                            <span className="text-xs text-slate-400 italic">Belum disetujui</span>
+                          )}
                         </td>
                       </tr>
                     );
