@@ -4,9 +4,12 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import CustomSelect from '@/components/CustomSelect';
 import Modal from '@/components/Modal'; 
+import { buatPengajuanKompen } from './actions';
+
 
 export default function AjukanKompenPage() {
-  const [user, setUser] = useState<{ name: string; role: string }>({
+  const [user, setUser] = useState<{ id: string; name: string; role: string }>({
+    id: '',
     name: '',
     role: '',
   });
@@ -27,11 +30,10 @@ export default function AjukanKompenPage() {
 
   // Options Data
   const matkulOptions = [
-    { label: 'Pemrograman Web Lanjut', value: 'pemrograman-web-lanjut' },
-    { label: 'Basis Data Terdistribusi', value: 'basis-data-terdistribusi' },
-    { label: 'Jaringan Komputer', value: 'jaringan-komputer' },
-    { label: 'Analisis Proses Bisnis', value: 'analisis-proses-bisnis' },
-    { label: 'Manajemen Proyek TI', value: 'manajemen-proyek-ti' },
+    { label: 'Pemrograman Web', value: 'bf819d7b-554d-408f-b7d5-02309816a263' },
+    { label: 'Basis Data', value: '916499bf-baf2-4156-a974-059da55d4d71' },
+    { label: 'Web Lanjut', value: 'a39e6369-c09b-4cb5-87f9-492b0b1c5fee' },
+    
   ];
 
   const semesterOptions = [
@@ -59,15 +61,16 @@ export default function AjukanKompenPage() {
   Number(formData.jumlahJam) > 0;
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
+    const savedUser = localStorage.getItem('session_user') || localStorage.getItem('user');
+    // const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    } else {
+      const parsed = JSON.parse(savedUser);
       setUser({
+        id: parsed.id || 'user-123',
         name: 'Tria Ananda',
         role: 'Mahasiswa',
       });
-    }
+    } 
   }, []);
 
   const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
@@ -79,7 +82,7 @@ export default function AjukanKompenPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const finalPekerjaan =
@@ -87,13 +90,22 @@ export default function AjukanKompenPage() {
     ? formData.pekerjaanLain
     : formData.jenisPekerjaan;
 
+    // Panggil fungsi Server Action database
+  const res = await buatPengajuanKompen({
+    userId: user.id || '',
+    mataKuliah: formData.mataKuliah,
+    semester: formData.semester,
+    kelas: formData.kelas,
+    pekerjaan: finalPekerjaan,
+    jumlahJam: Number(formData.jumlahJam),
+    keterangan: formData.keterangan,
+  });
+
     const payload = {
     ...formData,
     jenisPekerjaan: finalPekerjaan, 
   };
-
-    console.log('Data Pengajuan:', formData);
-    // Di sini nantinya tinggal dipanggil API Prisma / Supabase
+if (res.success) {
     setShowModal(true);
     setFormData({
       mataKuliah: '',
@@ -104,7 +116,10 @@ export default function AjukanKompenPage() {
       pekerjaanLain: '',
       keterangan: '',
     });
-  };
+  } else {
+    alert(res.message || 'Gagal mengirim pengajuan.');
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex font-sans">
