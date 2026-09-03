@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { loginUser } from '@/app/actions/auth';
 
 export default function LoginForm() {
   const [identifier, setIdentifier] = useState('');
@@ -12,18 +13,28 @@ export default function LoginForm() {
  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   setLoading(true);
+  // Panggil autentikasi langsung ke database Supabase
+    const res = await loginUser(identifier, password);
 
-  // Pengecekan sederhana berdasarkan input email/NIM
-  if (identifier === 'admin@polinema.ac.id' || identifier.toLowerCase().includes('admin')) {
-    // Redirect ke Admin Dashboard
-    router.push('/admin/dashboard');
-  } else {
-    // Redirect ke Dashboard Mahasiswa
-    router.push('/dashboard');
-  }
+  if (!res.success || !res.user) {
+      alert(res.message);
+      setLoading(false);
+      return;
+    }
 
-  setLoading(false);
-};
+    // Simpan sesi user hasil query database Supabase
+    localStorage.setItem('session_user', JSON.stringify(res.user));
+
+    // Arahkan ke dashboard sesuai role yang ada di tabel User Supabase
+    if (res.user.role === 'ADMIN') {
+      router.push('/admin/dashboard');
+    } else {
+      router.push('/dashboard');
+    }
+
+    setLoading(false);
+  };
+  
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex items-center justify-center p-4">

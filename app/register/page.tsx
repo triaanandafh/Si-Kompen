@@ -67,7 +67,9 @@ export default function RegisterPage() {
 
     // Simpan data pendaftaran ke LocalStorage untuk simulasi
     const newUser = {
+      id: 'mhs-' + Date.now(),
       name: formData.name,
+      nama: formData.name,
       nim: formData.nim,
       email: formData.email,
       kelas: formData.kelas,
@@ -77,7 +79,9 @@ export default function RegisterPage() {
       role: 'Mahasiswa',
     };
 
-    localStorage.setItem('user', JSON.stringify(newUser));
+    const existingUsers = JSON.parse(localStorage.getItem('registered_users') || '[]');
+    existingUsers.push(newUser);
+    localStorage.setItem('registered_users', JSON.stringify(existingUsers));
     alert('Registrasi berhasil! Silakan login.');
     router.push('/');
   };
