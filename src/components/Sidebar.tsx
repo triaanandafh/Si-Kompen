@@ -11,7 +11,14 @@ export default function Sidebar() {
   // Fungsi Logout
   const handleLogout = () => {
     // Hapus data user dari LocalStorage
-    localStorage.removeItem('user');
+    try {
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error removing user from localStorage:', error);
+      window.location.href = '/';
+    }
+    
     
     // Opsi: Hapus item lain jika ada (misal token auth)
     // localStorage.clear();
