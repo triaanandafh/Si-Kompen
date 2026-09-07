@@ -77,7 +77,7 @@ export async function updateMatkul(
       data: {
         namaMatkul: formData.namaMatkul,
         prodi: formData.prodi,
-        dosen_id: formData.dosen_id,
+        dosenId: formData.dosen_id,
       },
     });
     revalidatePath('/admin/matkul');
