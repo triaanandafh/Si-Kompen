@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import CustomSelect from '@/components/CustomSelect';
 import Modal from '@/components/Modal'; 
-import { buatPengajuanKompen } from './actions';
+import { buatPengajuanKompen, getDaftarDosen } from './actions';
 
 
 export default function AjukanKompenPage() {
@@ -14,16 +14,19 @@ export default function AjukanKompenPage() {
     role: '',
   });
 
+  const [dosenList, setDosenList] = useState<{ id: string; nama: string; nip: string }[]>([]);
+
   //State untuk kontrol Modal Notifikasi
   const [showModal, setShowModal] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
-    mataKuliah: '',
+    mataKuliah: '', 
+    dosenId: '',
     semester: 'semester-6',
     kelas: 'TI-3B',
     jenisPekerjaan: '',
-    jumlahJam: '4',
+    jumlahJam: '2',
     pekerjaanLain: '',
     keterangan: '',
   });
@@ -73,6 +76,25 @@ export default function AjukanKompenPage() {
     } 
   }, []);
 
+  useEffect(() => {
+  // Ambil data dosen langsung dari Supabase
+  async function loadDosen() {
+    const res = await getDaftarDosen();
+    if (res.success && res.data) {
+      setDosenList(res.data);
+    }
+  }
+  loadDosen();
+}, []);
+
+  const dosenOptions = dosenList.map((d) => ({
+  label: d.nama,
+  value: d.id,
+}));
+
+// Cari NIP dosen yang sedang dipilih untuk preview
+const selectedDosen = dosenList.find((d) => d.id === formData.dosenId);
+
   const initial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
 
   const handleChange = (
@@ -94,6 +116,7 @@ export default function AjukanKompenPage() {
   const res = await buatPengajuanKompen({
     userId: user.id || '',
     mataKuliah: formData.mataKuliah,
+    dosenId: formData.dosenId,
     semester: formData.semester,
     kelas: formData.kelas,
     pekerjaan: finalPekerjaan,
@@ -109,10 +132,11 @@ if (res.success) {
     setShowModal(true);
     setFormData({
       mataKuliah: '',
+      dosenId: '',
       semester: 'semester-6',
       kelas: 'TI-3B',
       jenisPekerjaan: '',
-      jumlahJam: '4',
+      jumlahJam: '2',
       pekerjaanLain: '',
       keterangan: '',
     });
@@ -163,6 +187,25 @@ if (res.success) {
                   setFormData((prev) => ({ ...prev, mataKuliah: val }))
                 }
               />
+            </div>
+
+            {/* Pilih Dosen Pengampu */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Dosen Pengampu Mata Kuliah
+              </label>
+              <CustomSelect
+                options={dosenOptions}
+                placeholder="Pilih dosen pengampu kelas Anda"
+                value={formData.dosenId}
+                onChange={(val) => setFormData((prev) => ({ ...prev, dosenId: val }))}
+              />
+              {/* NIP muncul otomatis di bawah select */}
+              {selectedDosen && (
+                <p className="text-xs text-slate-500 mt-1.5 font-mono">
+                  NIP: <span className="font-semibold text-slate-700">{selectedDosen.nip}</span>
+                </p>
+              )}
             </div>
 
             {/* Semester & Kelas Grid */}

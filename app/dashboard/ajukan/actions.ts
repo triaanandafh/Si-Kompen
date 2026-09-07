@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 interface AjukanInput {
   userId: string;
   mataKuliah: string;
+  dosenId: string;
   semester: string;
   kelas: string;
   pekerjaan: string;
@@ -35,7 +36,8 @@ export async function buatPengajuanKompen(input: AjukanInput) {
     const res = await prisma.pengajuanKompen.create({
       data: {
         mahasiswaId: mhs.id,
-        matkulId: input.mataKuliah,               // Wajib ada
+        matkulId: input.mataKuliah,               
+        dosenId: input.dosenId,
         semester: semesterNumber,               // Wajib Int
         kelas: input.kelas,                     // Wajib String
         pekerjaan: input.pekerjaan,             // Wajib String
@@ -51,5 +53,24 @@ export async function buatPengajuanKompen(input: AjukanInput) {
   } catch (err) {
     console.error('Gagal simpan pengajuan:', err);
     return { success: false, message: 'Gagal menyimpan ke database Supabase.' };
+  }
+}
+
+export async function getDaftarDosen() {
+  try {
+    const data = await prisma.dosen.findMany({
+      select: {
+        id: true,
+        nama: true,
+        nip: true,
+      },
+      orderBy: {
+        nama: 'asc',
+      },
+    });
+    return { success: true, data };
+  } catch (error) {
+    console.error('Gagal mengambil daftar dosen:', error);
+    return { success: false, data: [] };
   }
 }
