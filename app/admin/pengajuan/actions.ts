@@ -9,13 +9,18 @@ export async function getPengajuanData() {
   try {
     const data = await prisma.pengajuanKompen.findMany({
       include: {
-        mahasiswa: true, // Ambil data mahasiswa
-        matkul: true,    // Ambil data mata kuliah
+        mahasiswa: {
+          include: {
+            user: true, // <-- WAJIB: Ambil relasi tabel user agar nama mahasiswa terbaca
+          },
+        },
+        matkul: true,
       },
       orderBy: {
         createdAt: 'desc',
       },
     });
+    
     return { success: true, data };
   } catch (error) {
     console.error('Error fetching pengajuan:', error);

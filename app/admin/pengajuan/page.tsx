@@ -8,8 +8,12 @@ interface PengajuanItem {
   kode?: string;
   status: string;
   mahasiswa?: {
-    nama: string;
     nim: string;
+    nama?: string;
+    user?: {
+      nama?: string;
+      name?: string;
+    } | null;
   } | null;
   matkul?: {
     namaMatkul: string;
@@ -187,7 +191,12 @@ export default function PengajuanMasukPage() {
               ) : (
                 submissions.map((item) => {
                   const style = getBadgeStyle(item.status);
-                  const namaMhs = item.mahasiswa?.nama || item.namaMahasiswa || '-';
+                  const namaMhs =
+                  item.mahasiswa?.user?.nama ||
+                  item.mahasiswa?.user?.name ||
+                  item.mahasiswa?.nama ||
+                  item.namaMahasiswa ||
+                  '-';
                   const nimMhs = item.mahasiswa?.nim || item.nimMahasiswa || '-';
                   const matkul = item.matkul?.namaMatkul || item.namaMatkul || '-';
                   const kode = item.kode || `KMP-${item.id.substring(0, 4)}`;
@@ -220,7 +229,7 @@ export default function PengajuanMasukPage() {
                           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${style.badgeStyle}`}
                         >
                           <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`}></span>
-                          {item.status}
+                          {style.label} {/* Ganti item.status menjadi style.label */}
                         </span>
                       </td>
 
@@ -271,8 +280,12 @@ export default function PengajuanMasukPage() {
                 Mahasiswa
               </p>
               <p className="font-bold text-slate-800">
-                {selectedItem.mahasiswa?.nama || selectedItem.namaMahasiswa}
-              </p>
+              {selectedItem.mahasiswa?.user?.nama ||
+                selectedItem.mahasiswa?.user?.name ||
+                selectedItem.mahasiswa?.nama ||
+                selectedItem.namaMahasiswa ||
+                '-'}
+            </p>
               <p className="text-xs text-slate-500">
                 {selectedItem.matkul?.namaMatkul || selectedItem.namaMatkul}
               </p>
