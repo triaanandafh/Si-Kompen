@@ -104,8 +104,8 @@ model PengajuanKompen {
   matkulId    String          @map("matkul_id")
   matkul      Matkul          @relation(fields: [matkulId], references: [id], onDelete: Cascade)
 
-  dosenId     String?   @map("dosen_id")
-  dosen       Dosen?    @relation(fields: [dosenId], references: [id], onDelete: SetNull)
+  dosenId     String?         @map("dosen_id")
+  dosen       Dosen?          @relation(fields: [dosenId], references: [id], onDelete: SetNull)
 
   semester    Int
   kelas       String

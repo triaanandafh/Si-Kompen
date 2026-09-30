@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Si-Kompen
 
-## Getting Started
+**Sistem Informasi Kompensasi Presensi Mahasiswa** — a web app for managing student attendance compensation ("kompen") at the Information Technology Department, Politeknik Negeri Malang.
 
-First, run the development server:
+Students submit compensation requests for a course, and admins review them and move them through the approval flow. Before this app, the process was handled manually on paper.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+<!-- Add 2-3 screenshots here, for example:
+![Student dashboard](docs/screenshots/dashboard.png)
+![Admin submissions](docs/screenshots/admin-pengajuan.png)
+-->
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ✨ Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 👨‍🎓 Student (Mahasiswa)
+* Log in with NIM or email
+* Submit a compensation request (course, lecturer, semester, class, task, hours)
+* View request history and current status
+* Print the request document
+* View own profile
 
-## Learn More
+### 👨‍💼 Admin
+* Dashboard with request counts by status and the latest submissions
+* Manage lecturers (Dosen)
+* Manage courses (Matkul), each linked to a lecturer
+* Review incoming requests and update their status
 
-To learn more about Next.js, take a look at the following resources:
+### 🔄 Approval Flow
+```text
+MENUNGGU_TTD_DOSEN  →  VERIFIKASI_KPS  →  DISETUJUI
+                                        ↘  DITOLAK
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🛠 Tech Stack
+Layer | Tools
+Framework: Next.js 16 (App Router), React 19
+Language: TypeScript
+Styling: Tailwind CSS 4
+Database: PostgreSQL
+ORM: Prisma 7 with the @prisma/adapter-pg driver adapter
+Auth (current): bcryptjs password hashing, server actions
+Tooling: ESLint, tsx
 
-## Deploy on Vercel
+👤 Author
+Tria Ananda Fadillah — D-IV Sistem Informasi Bisnis, Politeknik Negeri Malang.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+GitHub: @triaanandafh
